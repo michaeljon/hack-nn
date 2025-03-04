@@ -8,7 +8,7 @@ namespace Learning.Neural.Networks
         {
             // var zeros = ImageLoader.LoadImages("/Users/michaeljon/src/ml/mnist-png/training/0");
 
-            var network = new NeuralNetwork([2, 3, 4, 3, 1]);
+            var network = new NeuralNetwork([2, 3, 3, 1]);
 
             var costs = network.Train(
                 Matrix<double>.Build.DenseOfArray(

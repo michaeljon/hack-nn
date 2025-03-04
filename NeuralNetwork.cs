@@ -3,6 +3,8 @@ using System.Linq;
 using MathNet.Numerics;
 using MathNet.Numerics.Distributions;
 using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.Statistics;
+
 
 namespace Learning.Neural.Networks
 {
@@ -70,11 +72,18 @@ namespace Learning.Neural.Networks
             }
         }
 
-        public double[] Train(Matrix<double> trainingData, Matrix<double> labels, double alpha, double epsilon = 0.001, int epochs = 1000)
+        public double[] Train(Matrix<double> trainingData, Matrix<double> labels, double alpha, bool scale = true, double epsilon = 0.001, int epochs = 1000)
         {
             var costs = new double[epochs + 1];
             var y = labels.Transpose();
             int m = trainingData.RowCount;
+
+            if (scale == true)
+            {
+                Console.WriteLine("Scaling training data");
+
+                Scale(trainingData);
+            }
 
             for (var epoch = 1; epoch <= epochs; epoch++)
             {
@@ -183,6 +192,24 @@ namespace Learning.Neural.Networks
                 });
 
             return cs.Sum() / cs.Count();
+        }
+
+        private static void Scale(Matrix<double> matrix)
+        {
+            for (var col = 0; col < matrix.ColumnCount; col++)
+            {
+                var column = matrix.Column(col).ToArray();
+
+                var mean = column.Mean();
+                var stdDev = Statistics.StandardDeviation(column);
+
+                var scaled = column.Select(x => (x - mean) / stdDev).ToArray();
+
+                for (int i = 0; i < matrix.RowCount; i++)
+                {
+                    matrix[i, col] = scaled[i];
+                }
+            }
         }
     }
 }
