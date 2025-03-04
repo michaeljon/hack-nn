@@ -1,4 +1,6 @@
-﻿using MathNet.Numerics.LinearAlgebra;
+﻿using System;
+using System.ComponentModel;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace Learning.Neural.Networks
 {
@@ -6,11 +8,41 @@ namespace Learning.Neural.Networks
     {
         static void Main(string[] args)
         {
-            // var zeros = ImageLoader.LoadImages("/Users/michaeljon/src/ml/mnist-png/training/0");
+            var network = new NeuralNetwork([784, 8, 8, 1]);
 
+            var (X_train, y_train) = ImageLoader.LoadImagesAsMatrix("/Users/michaeljon/src/ml/mnist-png/training");
+            RunImageNetwork(network, X_train, y_train);
+
+            var (X_test, y_test) = ImageLoader.LoadImagesAsMatrix("/Users/michaeljon/src/ml/mnist-png/testing");
+            for (var t = 0; t < X_test.RowCount; t++)
+            {
+                var test = X_test.Row(t).ToRowMatrix();
+                var (yhat, rest) = network.FeedForward(test);
+
+                if (yhat[0, 0] != y_test[t, 0])
+                {
+                    Console.WriteLine($"Test {t} expected {y_test[t, 0]:N0} but predicted {yhat[0, 0]:N0}");
+                }
+            }
+        }
+
+        static void RunImageNetwork(NeuralNetwork network, Matrix<double> X, Matrix<double> y)
+        {
+            var yhat = network.Train(
+                X,
+                y,
+                alpha: 0.01,
+                scale: true,
+                epsilon: 0.0001,
+                epochs: 1000
+            );
+        }
+
+        static void RunExampleNetwork()
+        {
             var network = new NeuralNetwork([2, 3, 3, 1]);
 
-            var costs = network.Train(
+            var yhat = network.Train(
                 Matrix<double>.Build.DenseOfArray(
                     new double[,]
                     {
@@ -45,8 +77,6 @@ namespace Learning.Neural.Networks
                 epsilon: 0.0001,
                 epochs: 1000
             );
-
-            // Console.WriteLine($"network cost first round {string.Join(", ", costs)}");
         }
     }
 }

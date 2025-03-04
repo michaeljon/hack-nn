@@ -118,7 +118,7 @@ namespace Learning.Neural.Networks
             return costs[1..];
         }
 
-        private (Matrix<double> yhat, Matrix<double>[] rest) FeedForward(Matrix<double> trainingData)
+        public (Matrix<double> yhat, Matrix<double>[] rest) FeedForward(Matrix<double> trainingData)
         {
             var a = new Matrix<double>[layerCount];
             var m = trainingData.RowCount;
@@ -203,7 +203,7 @@ namespace Learning.Neural.Networks
                 var mean = column.Mean();
                 var stdDev = Statistics.StandardDeviation(column);
 
-                var scaled = column.Select(x => (x - mean) / stdDev).ToArray();
+                var scaled = column.Select(x => (stdDev != 0) ? (x - mean) / stdDev : 0).ToArray();
 
                 for (int i = 0; i < matrix.RowCount; i++)
                 {
