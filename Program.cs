@@ -11,82 +11,6 @@ namespace Learning.Neural.Networks
             RunImageNetworkAgain();
         }
 
-        static void RunXorNetwork()
-        {
-            var network = new NeuralNetwork([3, 8, 1]);
-
-            var X_train = Matrix<double>.Build.DenseOfArray(
-                new double[,]
-                {
-                    { 0, 0, 1 },
-                    { 1, 1, 1 },
-                    { 1, 0, 1 },
-                    { 0, 1, 1 },
-                }
-            );
-
-            var y_train = Matrix<double>.Build.DenseOfArray(
-                new double[,]
-                {
-                    { 0 },
-                    { 1 },
-                    { 1 },
-                    { 0 },
-                }
-            );
-
-            var (costs, epochs) = network.Train(
-                X_train,
-                y_train,
-                alpha: 0.001,
-                scale: false,
-                epsilon: 0.00001,
-                epochs: 1);
-
-            Console.WriteLine("Weights");
-            network.Weights.Skip(1).Each((m, i) => { Console.WriteLine($"W{i + 1}"); m.Print(); });
-
-            Console.WriteLine("Biases");
-            network.Biases.Skip(1).Each((m, i) => { Console.WriteLine($"b{i + 1}"); m.Print(); });
-        }
-
-        static void RunImageNetwork()
-        {
-            var network = new NeuralNetwork([784, 256, 256, 10, 1]);
-
-            var (X_train, y_train) = ImageLoader.LoadImagesAsMatrix("/Users/michaeljon/src/ml/mnist-png/training", count: 100);
-            network.Train(
-                X_train,
-                y_train,
-                alpha: 0.01,
-                scale: false,
-                epsilon: 0.0,
-                epochs: 100
-            );
-
-            Console.WriteLine("Ŷ");
-            network.Yhat.Print();
-
-            var (X_test, y_test) = ImageLoader.LoadImagesAsMatrix("/Users/michaeljon/src/ml/mnist-png/testing", count: 100);
-            for (var t = 0; t < X_test.RowCount; t++)
-            {
-                var test = X_test.Row(t).ToRowMatrix();
-                var (yhat, rest) = network.FeedForward(test);
-
-                if (yhat[0, 0] != y_test[t, 0])
-                {
-                    Console.WriteLine($"Test {t} expected {y_test[t, 0]:N0} but predicted {yhat[0, 0]:N0}");
-                }
-            }
-
-            // Console.WriteLine("Weights");
-            // network.Weights[1].Print();
-            // network.Weights.Skip(1).Each((m, i) => { Console.WriteLine($"W{i + 1}"); m.Print(); });
-
-            // Console.WriteLine("Biases");
-            // network.Biases.Skip(1).Each((m, i) => { Console.WriteLine($"b{i + 1}"); m.Print(); });
-        }
-
         static void RunExampleNetwork()
         {
             var network = new NeuralNetwork([2, 3, 3, 1], false, false);
@@ -182,7 +106,6 @@ namespace Learning.Neural.Networks
                     Console.WriteLine($"Test expected {y_test[0, 0]:N0} but predicted {yhat[0, 0]:N0}");
                 }
             }
-
 
             // Console.WriteLine("Weights");
             // network.Weights[1].Print();
