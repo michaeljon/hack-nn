@@ -10,4 +10,11 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="../mnist-data/*ubyte" CopyToOutputDirectory="Always" />
+    <Content Include="../mnist-data/*ubyte">
+      <PackageCopyToOutput>true</PackageCopyToOutput>
+    </Content>
+  </ItemGroup>
+
 </Project>

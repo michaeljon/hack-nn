@@ -15,10 +15,7 @@ namespace Learning.Neural.Networks
         private readonly int layerCount;
         private readonly int[] layerSizes;
 
-        private Matrix<double>[] weights;
-        private Matrix<double>[] biases;
-
-        public NeuralNetwork(int[] layerSizes)
+        public NeuralNetwork(int[] layerSizes, bool randomWeights = true, bool randomBiases = true)
         {
             ArgumentNullException.ThrowIfNull(layerSizes);
 
@@ -40,39 +37,65 @@ namespace Learning.Neural.Networks
             }
             Console.WriteLine("Output layer size: {0}", layerSizes[^1]);
 
-            InitializeWeights();
-            InitializeBiases();
+            InitializeWeights(randomWeights);
+            InitializeBiases(randomBiases);
         }
 
-        private void InitializeWeights()
+        public Matrix<double> Yhat { get; set; }
+
+        public Matrix<double>[] Weights { get; set; }
+
+        public Matrix<double>[] Biases { get; set; }
+
+        private void InitializeWeights(bool randomWeights = true)
         {
-            weights = new Matrix<double>[layerCount];
+            Weights = new Matrix<double>[layerCount];
             for (var w = 0; w < layerCount - 1; w++)
             {
-                weights[w + 1] = Matrix<double>.Build.Random(
-                    layerSizes[w + 1],
-                    layerSizes[w],
-                    distribution);
+                if (randomWeights == true)
+                {
+                    Weights[w + 1] = Matrix<double>.Build.Random(
+                        layerSizes[w + 1],
+                        layerSizes[w],
+                        distribution);
+                }
+                else
+                {
+                    Weights[w + 1] = Matrix<double>.Build.Dense(
+                        layerSizes[w + 1],
+                        layerSizes[w],
+                        1.0);
+                }
 
-                Console.WriteLine("Weights for layer {0} shape: {1}", w + 1, weights[w + 1].ShapeAsString());
+                Console.WriteLine("Weights for layer {0} shape: {1}", w + 1, Weights[w + 1].ShapeAsString());
             }
         }
 
-        private void InitializeBiases()
+        private void InitializeBiases(bool randomBiases = true)
         {
-            biases = new Matrix<double>[layerCount];
+            Biases = new Matrix<double>[layerCount];
             for (var b = 1; b < layerCount; b++)
             {
-                biases[b] = Matrix<double>.Build.Random(
-                    layerSizes[b],
-                    1,
-                    distribution);
+                if (randomBiases == true)
+                {
+                    Biases[b] = Matrix<double>.Build.Random(
+                        layerSizes[b],
+                        1,
+                        distribution);
+                }
+                else
+                {
+                    Biases[b] = Matrix<double>.Build.Dense(
+                        layerSizes[b],
+                        1,
+                        1.0);
+                }
 
-                Console.WriteLine("Biases for layer {0} shape: {1}", b, biases[b].ShapeAsString());
+                Console.WriteLine("Biases for layer {0} shape: {1}", b, Biases[b].ShapeAsString());
             }
         }
 
-        public double[] Train(Matrix<double> trainingData, Matrix<double> labels, double alpha, bool scale = true, double epsilon = 0.001, int epochs = 1000)
+        public (double[] cposts, int epochs) Train(Matrix<double> trainingData, Matrix<double> labels, double alpha, bool scale = true, double epsilon = 0.001, int epochs = 1000)
         {
             var costs = new double[epochs + 1];
             var y = labels.Transpose();
@@ -81,54 +104,72 @@ namespace Learning.Neural.Networks
             if (scale == true)
             {
                 Console.WriteLine("Scaling training data");
-
                 Scale(trainingData);
             }
 
-            for (var epoch = 1; epoch <= epochs; epoch++)
-            {
-                var (yhat, rest) = FeedForward(trainingData);
+            Matrix<double> yhat = default;
+            Matrix<double>[] rest = default;
 
-                var cost = ComputeCost(yhat, y);
-                costs[epoch] = cost;
+            Console.WriteLine("Training model");
+            var epoch = 0;
+            while (epoch++ < epochs)
+            {
+                (yhat, rest) = FeedForward(trainingData);
+
+                var error = ComputeCost(yhat, y);
+                costs[epoch - 1] = error;
 
                 Matrix<double> propagator = null;
+                Matrix<double>[] dC_dWs = new Matrix<double>[layerCount];
+                Matrix<double>[] dC_dbs = new Matrix<double>[layerCount];
 
                 for (var l = layerCount - 1; l > 0; l--)
                 {
-                    var (dC_dW, dC_db, dC_dA) = BackProp(yhat, y, propagator, m, l, anext: rest[l], aprev: rest[l - 1], w: weights[l]);
+                    var (dC_dW, dC_db, dC_dA) =
+                        BackProp(yhat, y, propagator, m, l, anext: rest[l], aprev: rest[l - 1], w: Weights[l]);
 
-                    weights[l] = weights[l] - (alpha * dC_dW);
-                    biases[l] = biases[l] - (alpha * dC_db);
+                    dC_dWs[l] = dC_dW;
+                    dC_dbs[l] = dC_db;
 
                     propagator = dC_dA;
                 }
 
-                if (epoch % 20 == 0)
+                for (var l = layerCount - 1; l > 0; l--)
                 {
-                    Console.WriteLine($"epoch {epoch}: cost = {cost:F4}");
+                    Weights[l] = Weights[l] - (alpha * dC_dWs[l]);
+                    Biases[l] = Biases[l] - (alpha * dC_dbs[l]);
                 }
 
-                if (Math.Abs(costs[epoch] - costs[epoch - 1]) < epsilon)
+                if (epoch % 20 == 0)
                 {
-                    break;
+                    // Console.WriteLine($"epoch {epoch}: cost = {cost:F4}");
+                }
+
+                if (epsilon != 0)
+                {
+                    if (Math.Abs(costs[epoch] - costs[epoch - 1]) < epsilon)
+                    {
+                        break;
+                    }
                 }
             }
 
-            return costs[1..];
+            Yhat = yhat;
+
+            return (costs[1..], epoch);
         }
 
-        public (Matrix<double> yhat, Matrix<double>[] rest) FeedForward(Matrix<double> trainingData)
+        public (Matrix<double> yhat, Matrix<double>[] rest) FeedForward(Matrix<double> X)
         {
             var a = new Matrix<double>[layerCount];
-            var m = trainingData.RowCount;
+            var m = X.RowCount;
 
-            a[0] = trainingData.Transpose();
+            a[0] = X.Transpose();
             // Console.WriteLine("A0 shape: {0}", a[0].ShapeAsString());
 
             for (var l = 1; l < layerCount; l++)
             {
-                var z = weights[l] * a[l - 1] + biases[l].Broadcast(m);
+                var z = Weights[l] * a[l - 1] + Biases[l].Broadcast(m);
                 z.AssertShape(layerSizes[l], m);
                 a[l] = z.Map(SpecialFunctions.Logistic);
 

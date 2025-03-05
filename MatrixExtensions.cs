@@ -52,19 +52,25 @@ namespace Learning.Neural.Networks
 
         public static void Print<T>(this Matrix<T> matrix) where T : struct, IFormattable, IEquatable<T>
         {
-            Console.WriteLine("[");
+            Console.Write("[");
             for (var r = 0; r < matrix.RowCount; r++)
             {
-                Console.Write("[ ");
+                Console.Write(r == 0 ? "[ " : " [ ");
 
                 for (var c = 0; c < matrix.ColumnCount; c++)
                 {
-                    Console.Write($"{matrix[r, c]:F4} ");
+                    Console.Write($"{matrix[r, c]:F8} ");
                 }
 
-                Console.WriteLine(" ]");
+                if (r == matrix.RowCount - 1)
+                {
+                    Console.WriteLine("]]");
+                }
+                else
+                {
+                    Console.WriteLine("]");
+                }
             }
-            Console.WriteLine("]");
         }
     }
 }
