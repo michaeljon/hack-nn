@@ -22,44 +22,9 @@ trim_trailing_whitespace = false
 [*.cs]
 dotnet_diagnostic.IDE0002.severity = warning
 dotnet_diagnostic.IDE0005.severity = warning
-dotnet_diagnostic.IDE0006.severity = none
-dotnet_diagnostic.IDE0063.severity = none
-dotnet_diagnostic.IDE0290.severity = none
-
-dotnet_diagnostic.CA1014.severity = none
-dotnet_diagnostic.CA1016.severity = none
-dotnet_diagnostic.CA1031.severity = none
-dotnet_diagnostic.CA1032.severity = none
-dotnet_diagnostic.CA1303.severity = none
-dotnet_diagnostic.CA1308.severity = none
-dotnet_diagnostic.CA1056.severity = none
-dotnet_diagnostic.CA1727.severity = none
-dotnet_diagnostic.CA1812.severity = none
-dotnet_diagnostic.CA1848.severity = none
-dotnet_diagnostic.CA2007.severity = none
-dotnet_diagnostic.CA2100.severity = none
-dotnet_diagnostic.CA2208.severity = none
-dotnet_diagnostic.CA2223.severity = none
-dotnet_diagnostic.CA2224.severity = none
-dotnet_diagnostic.CA2229.severity = none
-
-dotnet_diagnostic.RCS1014.severity = none
-dotnet_diagnostic.RCS1032.severity = none
-dotnet_diagnostic.RCS1033.severity = none
-dotnet_diagnostic.RCS1037.severity = none
-dotnet_diagnostic.RCS1049.severity = none
-dotnet_diagnostic.RCS1079.severity = none
-dotnet_diagnostic.RCS1090.severity = none # Add call to 'ConfigureAwait'
-dotnet_diagnostic.RCS1123.severity = none
-dotnet_diagnostic.RCS1135.severity = none
-dotnet_diagnostic.RCS1138.severity = none
-dotnet_diagnostic.RCS1154.severity = none
-dotnet_diagnostic.RCS1157.severity = none
-dotnet_diagnostic.RCS1170.severity = none
-dotnet_diagnostic.RCS1214.severity = none
+dotnet_diagnostic.IDE0130.severity = none
 
 csharp_prefer_simple_using_statement = false
-csharp_style_prefer_range_operator = false
 csharp_style_implicit_object_creation_when_type_is_apparent = true
 
 dotnet_sort_system_directives_first = true

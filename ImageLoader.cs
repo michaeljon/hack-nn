@@ -1,58 +1,84 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using MathNet.Numerics.LinearAlgebra;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace Learning.Neural.Networks
 {
-    internal static class ImageLoader
+    public static class ImageLoader
     {
-        public static (byte[][] X, int[] y) LoadImages(string path)
+        private const string TrainImages = "train-images.idx3-ubyte";
+        private const string TrainLabels = "train-labels.idx1-ubyte";
+        private const string TestImages = "t10k-images.idx3-ubyte";
+        private const string TestLabels = "t10k-labels.idx1-ubyte";
+
+        public static IEnumerable<Image> ReadTrainingData()
         {
-            var files = Directory.GetFiles(path, "*.png").AsEnumerable();
-            byte[][] imageData = new byte[files.Count()][];
-
-            files.Each((file, index) =>
+            foreach (var item in Read(TrainImages, TrainLabels))
             {
-                LoadImageFromFile(file, index, imageData);
-            });
-
-            return (imageData, null);
+                yield return item;
+            }
         }
 
-        public static (Matrix<double> X, Matrix<double> y) LoadImagesAsMatrix(string path, int count = 100)
+        public static IEnumerable<Image> ReadTestData()
         {
-            var files = Directory
-                .GetFiles(path, "*.png", SearchOption.AllDirectories)
-                .AsEnumerable()
-                .OrderBy(s => Guid.NewGuid().ToString("n"))
-                .Take(count);
-
-            byte[][] imageData = new byte[files.Count()][];
-            double[] labels = new double[files.Count()];
-
-            files.Each((file, index) =>
+            foreach (var item in Read(TestImages, TestLabels))
             {
-                labels[index] = double.Parse(Path.GetDirectoryName(file).Split(Path.DirectorySeparatorChar).Last());
-
-                LoadImageFromFile(file, index, imageData);
-            });
-
-            var X = Matrix<double>.Build.Dense(files.Count(), 784, (i, j) => Convert.ToDouble(imageData[i][j]));
-            var y = Matrix<double>.Build.Dense(files.Count(), 1, (i, j) => labels[i]);
-
-            return (X, y);
+                yield return item;
+            }
         }
 
-        static void LoadImageFromFile(string file, int index, byte[][] imageData)
+        private static IEnumerable<Image> Read(string imagesPath, string labelsPath)
         {
-            var image = Image.Load<L8>(file);
+            using var labels = new BinaryReader(new FileStream(labelsPath, FileMode.Open));
+            using var images = new BinaryReader(new FileStream(imagesPath, FileMode.Open));
 
-            imageData[index] = new byte[784];
+            var magicNumber = images.ReadBigInt32();
+            var numberOfImages = images.ReadBigInt32();
+            var width = images.ReadBigInt32();
+            var height = images.ReadBigInt32();
 
-            image.CopyPixelDataTo(imageData[index]);
+            var magicLabel = labels.ReadBigInt32();
+            var numberOfLabels = labels.ReadBigInt32();
+
+            for (var i = 0; i < numberOfImages; i++)
+            {
+                var bytes = images.ReadBytes(width * height);
+                var label = labels.ReadByte();
+
+                yield return new Image(bytes, label);
+            }
+        }
+    }
+
+    public class Image
+    {
+        public int Label { get; set; }
+
+        public double[] Targets { get; set; } = new double[10];
+
+        public double[] Data { get; set; }
+
+        public Image(byte[] data, byte label)
+        {
+            Data = [.. data.Select(b => b / 256d)];
+            Label = Convert.ToInt32(label);
+            Targets[Label] = 1;
+        }
+    }
+
+    public static class Extensions
+    {
+        public static int ReadBigInt32(this BinaryReader br)
+        {
+            var bytes = br.ReadBytes(sizeof(int));
+
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(bytes);
+            }
+
+            return BitConverter.ToInt32(bytes, 0);
         }
     }
 }
