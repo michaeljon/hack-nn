@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using MessagePack;
 
 namespace Learning.Neural.Networks
@@ -34,7 +35,7 @@ namespace Learning.Neural.Networks
                 var currentLayer = Layers[l];
                 var previousLayer = Layers[l - 1];
 
-                for (var j = 0; j < currentLayer.NeuronCount; j++)
+                Parallel.For(0, currentLayer.NeuronCount, (j) =>
                 {
                     var output = currentLayer.Biases[j];
 
@@ -44,7 +45,7 @@ namespace Learning.Neural.Networks
                     }
 
                     currentLayer.Outputs[j] = Sigmoid(output);
-                }
+                });
             }
 
             return [.. Layers[^1].Outputs];
@@ -64,7 +65,7 @@ namespace Learning.Neural.Networks
                 var currentLayer = Layers[l];
                 var nextLayer = Layers[l + 1];
 
-                for (var i = 0; i < currentLayer.NeuronCount; i++)
+                Parallel.For(0, currentLayer.NeuronCount, (i) =>
                 {
                     var sum = 0.0;
 
@@ -74,7 +75,7 @@ namespace Learning.Neural.Networks
                     }
 
                     currentLayer.Gradients[i] = sum * SigmoidDerivative(currentLayer.Outputs[i]);
-                }
+                });
             }
         }
 
@@ -85,14 +86,14 @@ namespace Learning.Neural.Networks
                 var currentLayer = Layers[l];
                 var previousLayer = Layers[l - 1];
 
-                for (var i = 0; i < currentLayer.NeuronCount; i++)
+                Parallel.For(0, currentLayer.NeuronCount, (i) =>
                 {
                     for (var j = 0; j < previousLayer.NeuronCount; j++)
                     {
                         currentLayer.Weights[i][j] -= learningRate * currentLayer.Gradients[i] * previousLayer.Outputs[j];
                         currentLayer.Biases[i] -= learningRate * currentLayer.Gradients[i];
                     }
-                }
+                });
             }
         }
 
