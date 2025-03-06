@@ -7,7 +7,7 @@ namespace Learning.Neural.Networks
 {
     internal static class NetworkSerializer
     {
-        public static void SaveNetwork(NeuralNetwork network, string folder, int epoch, double accuracy, string layerName)
+        public static async Task SaveNetwork(NeuralNetwork network, string folder, int epoch, double accuracy, string layerName)
         {
             var path = Path.Join(folder, $"L-{layerName}-E-{epoch}-A-{accuracy:P}-{DateTime.Now:s}.bin");
 
@@ -28,7 +28,7 @@ namespace Learning.Neural.Networks
 
                     if (accuracy > fileAccuracy)
                     {
-                        Task.Run(async () => { await FileDelete(Path.Join(folder, filename)); });
+                        await FileDelete(Path.Join(folder, filename));
                     }
                     else
                     {
@@ -48,7 +48,7 @@ namespace Learning.Neural.Networks
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Failed to write network configuration {ex.Message}");
-                    Task.Run(async () => { await FileDelete(path); });
+                    await FileDelete(path);
                 }
             }
         }

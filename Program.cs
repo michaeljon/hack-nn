@@ -9,9 +9,9 @@ namespace Learning.Neural.Networks
     {
         private static readonly int epochs = 100;
 
-        private static readonly double learningRate = 0.9;
+        private static readonly double learningRate = 0.01;
 
-        public static void Main(string[] _)
+        public static async Task Main(string[] _)
         {
             Console.WriteLine($"Loading training data --{DateTime.Now:s}--");
             var trainingSamples = ImageLoader.ReadTrainingData().ToList();
@@ -47,7 +47,7 @@ namespace Learning.Neural.Networks
                 {
                     best = result;
 
-                    Task.Run(() => NetworkSerializer.SaveNetwork(network, "saved", epoch, result, layerName));
+                    await NetworkSerializer.SaveNetwork(network, "saved", epoch, result, layerName);
                 }
             }
 

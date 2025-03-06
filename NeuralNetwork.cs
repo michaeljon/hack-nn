@@ -57,7 +57,7 @@ namespace Learning.Neural.Networks
                             output += previousLayer.Outputs[n] * currentLayer.Weights[j][n];
                         }
 
-                        currentLayer.Outputs[j] = Sigmoid(output);
+                        currentLayer.Outputs[j] = Activate(output);
                     }
                 });
             }
@@ -68,9 +68,10 @@ namespace Learning.Neural.Networks
         public void CalculateGradients(double[] targets)
         {
             // final layer
-            for (var i = 0; i < Layers[^1].NeuronCount; i++)
+            var lastLayer = Layers[^1];
+            for (var i = 0; i < lastLayer.NeuronCount; i++)
             {
-                Layers[^1].Gradients[i] = (Layers[^1].Outputs[i] - targets[i]) * SigmoidDerivative(Layers[^1].Outputs[i]);
+                lastLayer.Gradients[i] = (lastLayer.Outputs[i] - targets[i]) * Derivative(lastLayer.Outputs[i]);
             }
 
             // other layers, working backwards
@@ -90,9 +91,8 @@ namespace Learning.Neural.Networks
                             sum += nextLayer.Weights[j][i] * nextLayer.Gradients[j];
                         }
 
-                        currentLayer.Gradients[i] = sum * SigmoidDerivative(currentLayer.Outputs[i]);
+                        currentLayer.Gradients[i] = sum * Derivative(currentLayer.Outputs[i]);
                     }
-
                 });
             }
         }
@@ -135,14 +135,14 @@ namespace Learning.Neural.Networks
         }
 
         // sigmoid activation
-        private static double Sigmoid(double weightedInput)
+        private static double Activate(double value)
         {
-            return 1.0 / (1.0 + Math.Exp(-weightedInput));
+            return 1.0 / (1.0 + Math.Exp(-value));
         }
 
-        private static double SigmoidDerivative(double value)
+        private static double Derivative(double value)
         {
-            return value * (1 - value);
+            return value * (1.0 - value);
         }
     }
 }

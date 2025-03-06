@@ -47,10 +47,10 @@ namespace Learning.Neural.Networks
 
                     for (var w = 0; w < Weights[n].Length; w++)
                     {
-                        Weights[n][w] = random.NextDouble() - 0.5; // GetRandom();
+                        Weights[n][w] = GetRandom();
                     }
 
-                    Biases[n] = random.NextDouble(); // GetRandom() / Math.Sqrt(PrevLayerNeuronCount);
+                    Biases[n] = GetRandom() / Math.Sqrt(PrevLayerNeuronCount);
                 }
             }
         }
