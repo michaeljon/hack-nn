@@ -38,19 +38,19 @@ namespace Learning.Neural.Networks
             Biases = new double[NeuronCount];
             Weights = new double[NeuronCount][];
 
-            for (var n = 0; n < NeuronCount; n++)
+            // don't do the input layer (neuronCount == 0)
+            if (prevLayerNeuronCount > 0)
             {
-                // don't do the input layer (neuronCount == 0)
-                if (prevLayerNeuronCount > 0)
+                for (var n = 0; n < NeuronCount; n++)
                 {
                     Weights[n] = new double[PrevLayerNeuronCount];
 
                     for (var w = 0; w < Weights[n].Length; w++)
                     {
-                        Weights[n][w] = GetRandom();
+                        Weights[n][w] = random.NextDouble() - 0.5; // GetRandom();
                     }
 
-                    Biases[n] = GetRandom() / Math.Sqrt(PrevLayerNeuronCount);
+                    Biases[n] = random.NextDouble(); // GetRandom() / Math.Sqrt(PrevLayerNeuronCount);
                 }
             }
         }

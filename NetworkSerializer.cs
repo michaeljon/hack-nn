@@ -74,11 +74,7 @@ namespace Learning.Neural.Networks
                 }
             }
 
-            if (deleted == true)
-            {
-                Console.WriteLine($"File {path} deleted");
-            }
-            else
+            if (deleted == false)
             {
                 Console.WriteLine($"File {path} not deleted");
             }

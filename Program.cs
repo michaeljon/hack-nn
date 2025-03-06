@@ -14,10 +14,10 @@ namespace Learning.Neural.Networks
         public static void Main(string[] _)
         {
             Console.WriteLine($"Loading training data --{DateTime.Now:s}--");
-            var trainingSamples = ImageLoader.ReadTrainingData().ToList().Take(10000);
+            var trainingSamples = ImageLoader.ReadTrainingData().ToList();
 
             Console.WriteLine($"Loading test data --{DateTime.Now:s}--");
-            var testSamples = ImageLoader.ReadTestData().ToList().Take(100);
+            var testSamples = ImageLoader.ReadTestData().ToList();
 
             var network = new NeuralNetwork(trainingSamples.ElementAt(0).Data.Length, 350, 10);
             var layerName = string.Join("_", network.Layers.Select(n => $"[{n.NeuronCount}]"));

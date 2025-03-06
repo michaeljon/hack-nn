@@ -1,7 +1,21 @@
 using System;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using MessagePack;
 
+// Some notes about the loops here
+//
+//  For the inner loops over adjacent layers, this class partitions the "neuron" count
+//  automatically by the number of CPUs and number of items in the range. This partition
+//  is then used as the target for a Parallel.ForEach().
+//
+//  This was done because a simple Parallel.For() would simply scatter all the work
+//  across all the CPUs. That's bad because the inner loop is CPU intensive, but extremely
+//  short. This leads to heavy context switching between the individual items in the
+//  arrays.
+//
+//  Chunking this gives a balance between CPU-heavy processing (lots of neurons per CPU-task)
+//  and context switching between the threads.
 namespace Learning.Neural.Networks
 {
     [MessagePackObject]
@@ -25,26 +39,26 @@ namespace Learning.Neural.Networks
 
         public double[] ForwardPropagation(double[] inputs)
         {
-            for (var i = 0; i < inputs.Length; i++)
-            {
-                Layers[0].Outputs[i] = inputs[i];
-            }
+            Array.Copy(inputs, Layers[0].Outputs, inputs.Length);
 
             for (var l = 1; l < Layers.Length; l++)
             {
                 var currentLayer = Layers[l];
                 var previousLayer = Layers[l - 1];
 
-                Parallel.For(0, currentLayer.NeuronCount, (j) =>
+                Parallel.ForEach(Partitioner.Create(0, currentLayer.NeuronCount), (range) =>
                 {
-                    var output = currentLayer.Biases[j];
-
-                    for (var n = 0; n < previousLayer.NeuronCount; n++)
+                    for (var j = range.Item1; j < range.Item2; j++)
                     {
-                        output += previousLayer.Outputs[n] * currentLayer.Weights[j][n];
-                    }
+                        var output = currentLayer.Biases[j];
 
-                    currentLayer.Outputs[j] = Sigmoid(output);
+                        for (var n = 0; n < previousLayer.NeuronCount; n++)
+                        {
+                            output += previousLayer.Outputs[n] * currentLayer.Weights[j][n];
+                        }
+
+                        currentLayer.Outputs[j] = Sigmoid(output);
+                    }
                 });
             }
 
@@ -65,16 +79,20 @@ namespace Learning.Neural.Networks
                 var currentLayer = Layers[l];
                 var nextLayer = Layers[l + 1];
 
-                Parallel.For(0, currentLayer.NeuronCount, (i) =>
+                Parallel.ForEach(Partitioner.Create(0, currentLayer.NeuronCount), (range) =>
                 {
-                    var sum = 0.0;
-
-                    for (var j = 0; j < nextLayer.NeuronCount; j++)
+                    for (var i = range.Item1; i < range.Item2; i++)
                     {
-                        sum += nextLayer.Weights[j][i] * nextLayer.Gradients[j];
+                        var sum = 0.0;
+
+                        for (var j = 0; j < nextLayer.NeuronCount; j++)
+                        {
+                            sum += nextLayer.Weights[j][i] * nextLayer.Gradients[j];
+                        }
+
+                        currentLayer.Gradients[i] = sum * SigmoidDerivative(currentLayer.Outputs[i]);
                     }
 
-                    currentLayer.Gradients[i] = sum * SigmoidDerivative(currentLayer.Outputs[i]);
                 });
             }
         }
@@ -86,11 +104,15 @@ namespace Learning.Neural.Networks
                 var currentLayer = Layers[l];
                 var previousLayer = Layers[l - 1];
 
-                Parallel.For(0, currentLayer.NeuronCount, (i) =>
+                Parallel.ForEach(Partitioner.Create(0, currentLayer.NeuronCount), (range) =>
                 {
-                    for (var j = 0; j < previousLayer.NeuronCount; j++)
+                    for (var i = range.Item1; i < range.Item2; i++)
                     {
-                        currentLayer.Weights[i][j] -= learningRate * currentLayer.Gradients[i] * previousLayer.Outputs[j];
+                        for (var j = 0; j < previousLayer.NeuronCount; j++)
+                        {
+                            currentLayer.Weights[i][j] -= learningRate * currentLayer.Gradients[i] * previousLayer.Outputs[j];
+                        }
+
                         currentLayer.Biases[i] -= learningRate * currentLayer.Gradients[i];
                     }
                 });
