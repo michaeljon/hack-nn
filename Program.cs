@@ -14,12 +14,12 @@ namespace Learning.Neural.Networks
         public static void Main(string[] _)
         {
             Console.WriteLine($"Loading training data --{DateTime.Now:s}--");
-            var trainingSamples = ImageLoader.ReadTrainingData().ToList();
+            var trainingSamples = ImageLoader.ReadTrainingData().ToList().Take(10000);
 
-            // Console.WriteLine($"Loading test data --{DateTime.Now:s}--");
-            // var testSamples = ImageLoader.ReadTestData().ToList();
+            Console.WriteLine($"Loading test data --{DateTime.Now:s}--");
+            var testSamples = ImageLoader.ReadTestData().ToList().Take(100);
 
-            var network = new NeuralNetwork(trainingSamples.ElementAt(0).Data.Length, 100, 20, 10);
+            var network = new NeuralNetwork(trainingSamples.ElementAt(0).Data.Length, 350, 10);
             var layerName = string.Join("_", network.Layers.Select(n => $"[{n.NeuronCount}]"));
 
             var best = 0.0;
@@ -34,7 +34,7 @@ namespace Learning.Neural.Networks
                     network.UpdateParameters(learningRate);
                 }
 
-                var result = GetAccuracy(network, trainingSamples);
+                var result = GetAccuracy(network, testSamples);
 
                 Console.WriteLine();
                 var outcome = best > 0 ?
@@ -58,9 +58,12 @@ namespace Learning.Neural.Networks
         {
             var matches = 0.0;
 
+            // get our throw-away clone
+            var clone = network.Clone();
+
             foreach (var sample in samples)
             {
-                var outputs = network.ForwardPropagation(sample.Data);
+                var outputs = clone.ForwardPropagation(sample.Data);
                 var max = outputs.Max();
                 var digit = outputs.ToList().IndexOf(max);
 

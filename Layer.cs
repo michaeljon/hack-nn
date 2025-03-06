@@ -4,7 +4,7 @@ using MessagePack;
 namespace Learning.Neural.Networks
 {
     [MessagePackObject]
-    public class Layer
+    public partial class Layer
     {
         private static readonly Random random = new();
 
@@ -21,10 +21,10 @@ namespace Learning.Neural.Networks
         public double[] Outputs { get; set; }
 
         [Key(4)]
-        public int NeuronCount { get; init; }
+        public int NeuronCount { get; private set; }
 
         [Key(5)]
-        public int PrevLayerNeuronCount { get; init; }
+        public int PrevLayerNeuronCount { get; private set; }
 
         public Layer() { }
 
@@ -53,6 +53,19 @@ namespace Learning.Neural.Networks
                     Biases[n] = GetRandom() / Math.Sqrt(PrevLayerNeuronCount);
                 }
             }
+        }
+
+        public Layer Clone()
+        {
+            return new Layer
+            {
+                Weights = Weights.Clone() as double[][],
+                Biases = Biases.Clone() as double[],
+                Gradients = Gradients.Clone() as double[],
+                Outputs = Outputs.Clone() as double[],
+                NeuronCount = NeuronCount,
+                PrevLayerNeuronCount = PrevLayerNeuronCount,
+            };
         }
 
         private static double GetRandom()

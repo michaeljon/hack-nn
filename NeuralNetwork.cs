@@ -97,6 +97,21 @@ namespace Learning.Neural.Networks
             }
         }
 
+        public NeuralNetwork Clone()
+        {
+            var layers = new Layer[Layers.Length];
+
+            for (var layer = 0; layer < Layers.Length; layer++)
+            {
+                layers[layer] = Layers[layer].Clone();
+            }
+
+            return new NeuralNetwork()
+            {
+                Layers = layers
+            };
+        }
+
         // sigmoid activation
         private static double Sigmoid(double weightedInput)
         {
