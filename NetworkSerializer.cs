@@ -7,9 +7,9 @@ namespace Learning.Neural.Networks
 {
     internal static class NetworkSerializer
     {
-        public static async Task SaveNetwork(NeuralNetwork network, string folder, int epoch, double accuracy, string layerName)
+        public static async Task SaveNetwork(NeuralNetwork network, string folder, string model, int epoch, double accuracy, string layerName)
         {
-            var path = Path.Join(folder, $"L-{layerName}-E-{epoch}-A-{accuracy:P}-{DateTime.Now:s}.bin");
+            var path = Path.Join(folder, $"M-{model}-L-{layerName}-E-{epoch}-A-{accuracy:P}-{DateTime.Now:s}.bin");
 
             if (Directory.Exists(folder) == false)
             {
@@ -24,7 +24,7 @@ namespace Learning.Neural.Networks
 
                 if (filename.Contains(layerName))
                 {
-                    var fileAccuracy = double.Parse(filename.Split("-")[5].Split("%")[0]) / 100.0;
+                    var fileAccuracy = double.Parse(filename.Split("-")[7].Split("%")[0]) / 100.0;
 
                     if (accuracy > fileAccuracy)
                     {

@@ -47,7 +47,7 @@ namespace Learning.Neural.Networks
                 {
                     best = result;
 
-                    await NetworkSerializer.SaveNetwork(network, "saved", epoch, result, layerName);
+                    await NetworkSerializer.SaveNetwork(network, "saved", "MNIST", epoch, result, layerName);
                 }
             }
 
