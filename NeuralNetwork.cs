@@ -142,7 +142,8 @@ namespace Learning.Neural.Networks
 
         private static double Derivative(double value)
         {
-            return value * (1.0 - value);
+            var sx = Activate(value);
+            return sx * (1.0 - sx);
         }
     }
 }

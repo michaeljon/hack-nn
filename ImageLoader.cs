@@ -61,7 +61,10 @@ namespace Learning.Neural.Networks
 
         public Image(byte[] data, byte label)
         {
-            Data = [.. data.Select(b => 255 - b)];
+            // Data = [.. data.Select(b => 255 - b)];
+
+            Data = [.. data.Select(b => b / 255.0)];
+
             Label = Convert.ToInt32(label);
             Targets[Label] = 1;
         }
